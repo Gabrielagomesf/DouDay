@@ -1,0 +1,42 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.validateAuth = void 0;
+const joi_1 = __importDefault(require("joi"));
+exports.validateAuth = {
+    register: async (req, res, next) => {
+        const schema = joi_1.default.object({
+            name: joi_1.default.string().required().min(2).max(50),
+            email: joi_1.default.string().email().required(),
+            password: joi_1.default.string().required().min(6),
+        });
+        try {
+            await schema.validateAsync(req.body);
+            return next();
+        }
+        catch (error) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                details: error
+            });
+        }
+    },
+    login: async (req, res, next) => {
+        const schema = joi_1.default.object({
+            email: joi_1.default.string().email().required(),
+            password: joi_1.default.string().required(),
+        });
+        try {
+            await schema.validateAsync(req.body);
+            return next();
+        }
+        catch (error) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                details: error
+            });
+        }
+    }
+};
