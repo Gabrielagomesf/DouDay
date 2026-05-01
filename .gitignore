@@ -1,0 +1,14 @@
+# Environment files
+.env
+**/.env
+.env.*
+**/.env.*
+
+# Ignore environment directories
+mobile/assets/env/
+
+# Optional: ignore common local dependency/build folders
+node_modules/
+**/node_modules/
+**/dist/
+**/build/
