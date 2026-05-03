@@ -96,7 +96,6 @@ const coupleSchema = new Schema<ICouple>({
 // Indexes
 coupleSchema.index({ user1Id: 1 });
 coupleSchema.index({ user2Id: 1 });
-coupleSchema.index({ inviteCode: 1 });
 coupleSchema.index({ status: 1 });
 
 // Pre-save middleware to set connectedAt when status changes to connected

@@ -110,8 +110,6 @@ const userSchema = new Schema<IUser>({
 });
 
 // Indexes
-userSchema.index({ email: 1 });
-userSchema.index({ inviteCode: 1 });
 userSchema.index({ coupleId: 1 });
 userSchema.index({ partnerId: 1 });
 
