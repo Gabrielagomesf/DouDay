@@ -6,7 +6,8 @@ const router = express.Router();
 // Get user profile
 router.get('/profile', async (req: any, res: Response) => {
   try {
-    const user = await User.findById(req.user.id);
+    const uid = req.user?._id ?? req.user?.id;
+    const user = await User.findById(uid);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -22,7 +23,8 @@ router.get('/profile', async (req: any, res: Response) => {
         partnerName: user.partnerName,
         coupleId: user.coupleId,
         isPremium: user.isPremium,
-        premiumExpiresAt: user.premiumExpiresAt
+        premiumExpiresAt: user.premiumExpiresAt,
+        createdAt: user.createdAt,
       }
     });
   } catch (error) {

@@ -181,18 +181,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   controlAffinity: ListTileControlAffinity.leading,
                   contentPadding: EdgeInsets.zero,
                 ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => context.go('/forgot-password'),
-                    child: const Text('Esqueci minha senha'),
-                  ),
-                ),
 
                 const SizedBox(height: 28),
 
                 SizedBox(
-                  height: 52,
+                  height: 48,
                   child: ElevatedButton(
                     onPressed: isLoading ? null : _login,
                     child: isLoading
@@ -207,8 +200,53 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                   ),
                 ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.center,
+                  child: TextButton(
+                    onPressed: () => context.go('/forgot-password'),
+                    child: const Text('Esqueci minha senha'),
+                  ),
+                ),
+                const SizedBox(height: 12),
 
-                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: AppTheme.borderLight.withValues(alpha: 0.8))),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text('ou', style: TextStyle(color: AppTheme.textTertiary, fontSize: 13)),
+                    ),
+                    Expanded(child: Divider(color: AppTheme.borderLight.withValues(alpha: 0.8))),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                SizedBox(
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Login com Google em breve')),
+                      );
+                    },
+                    child: const Text('Continuar com Google'),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Login com Apple em breve')),
+                      );
+                    },
+                    child: const Text('Continuar com Apple'),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

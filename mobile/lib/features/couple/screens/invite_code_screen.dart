@@ -60,6 +60,13 @@ class _InviteCodeScreenState extends ConsumerState<InviteCodeScreen> {
     await Share.share('Meu código DuoDay: ${_code!}');
   }
 
+  Future<void> _whatsapp() async {
+    if (_code == null) return;
+    await Share.share(
+      'Meu código DuoDay: ${_code!}\n\nJunta-te à app DuoDay com este código.',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -121,6 +128,15 @@ class _InviteCodeScreenState extends ConsumerState<InviteCodeScreen> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _whatsapp,
+                          icon: const Icon(Icons.share_outlined, size: 20),
+                          label: const Text('Partilhar com outras apps'),
+                        ),
                       ),
                       const SizedBox(height: 12),
                       SizedBox(

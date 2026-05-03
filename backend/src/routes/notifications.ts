@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import { coupleMiddleware } from '../middleware/auth';
 import { IUser } from '../models/User';
 import Notification from '../models/Notification';
+import { requireMongoIdParam } from '../utils/routeHelpers';
 
 const router = express.Router();
 
@@ -20,6 +21,16 @@ router.get('/', async (req: AuthRequest, res: Response, next: NextFunction) => {
     if (unread === 'true') query.isRead = false;
     const notifications = await Notification.find(query).sort({ createdAt: -1 }).limit(500);
     res.json({ notifications });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete('/clear', async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const user = req.user!;
+    await Notification.deleteMany({ coupleId: user.coupleId });
+    res.json({ message: 'Cleared' });
   } catch (e) {
     next(e);
   }
@@ -47,6 +58,7 @@ router.post('/', async (req: AuthRequest, res: Response, next: NextFunction) => 
 
 router.patch('/:id/read', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const { isRead } = req.body || {};
     const n = await Notification.findOne({ _id: req.params.id, coupleId: user.coupleId });
@@ -54,16 +66,6 @@ router.patch('/:id/read', async (req: AuthRequest, res: Response, next: NextFunc
     n.isRead = isRead === undefined ? true : !!isRead;
     await n.save();
     res.json({ notification: n });
-  } catch (e) {
-    next(e);
-  }
-});
-
-router.delete('/clear', async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const user = req.user!;
-    await Notification.deleteMany({ coupleId: user.coupleId });
-    res.json({ message: 'Cleared' });
   } catch (e) {
     next(e);
   }

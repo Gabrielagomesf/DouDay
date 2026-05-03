@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -40,11 +41,26 @@ class _EnterPartnerCodeScreenState extends ConsumerState<EnterPartnerCodeScreen>
       await authService.refreshUserProfile();
       if (!mounted) return;
       context.go('/connection-success');
+    } on DioException catch (e) {
+      setState(() => _loading = false);
+      if (!mounted) return;
+      final status = e.response?.statusCode;
+      final body = e.response?.data;
+      String msg = 'Código inválido';
+      if (status == 404) msg = 'Código inválido ou expirado';
+      if (status == 400) {
+        msg = 'Esse Duo já está completo ou o código não é mais válido';
+        if (body is Map && body['error'] is String) {
+          final s = body['error'] as String;
+          if (s.toLowerCase().contains('yourself')) msg = 'Você não pode usar seu próprio código';
+        }
+      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } catch (e) {
       setState(() => _loading = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Código inválido ou expirado')),
+        const SnackBar(content: Text('Não foi possível conectar. Tente novamente.')),
       );
     }
   }

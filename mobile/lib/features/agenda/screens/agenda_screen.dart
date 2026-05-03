@@ -17,6 +17,7 @@ class AgendaScreen extends ConsumerWidget {
     final eventsAsync = ref.watch(agendaEventsProvider);
 
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Agenda'),
       ),
@@ -36,9 +37,17 @@ class AgendaScreen extends ConsumerWidget {
                 ref.read(selectedDayProvider.notifier).set(sel);
                 ref.read(agendaEventsProvider.notifier).refresh();
               },
-              calendarStyle: const CalendarStyle(
-                todayDecoration: BoxDecoration(color: AppTheme.primaryLight, shape: BoxShape.circle),
-                selectedDecoration: BoxDecoration(color: AppTheme.primaryColor, shape: BoxShape.circle),
+              calendarStyle: CalendarStyle(
+                todayDecoration: BoxDecoration(
+                  color: AppTheme.primarySecondary.withValues(alpha: 0.35),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppTheme.primaryColor, width: 1.5),
+                ),
+                selectedDecoration: const BoxDecoration(
+                  color: AppTheme.primaryColor,
+                  shape: BoxShape.circle,
+                ),
+                weekendTextStyle: const TextStyle(color: AppTheme.textSecondary),
               ),
               headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
             ),
@@ -48,8 +57,8 @@ class AgendaScreen extends ConsumerWidget {
                 data: (events) {
                   if (events.isEmpty) {
                     return const EmptyState(
-                      title: 'Nenhum evento na agenda',
-                      body: 'Adicione um evento e mantenham a rotina alinhada.',
+                      title: 'Nenhum compromisso hoje',
+                      body: 'Adicione um evento na agenda do casal.',
                     );
                   }
                   return RefreshIndicator(

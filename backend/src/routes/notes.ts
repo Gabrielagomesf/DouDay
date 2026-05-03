@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import { coupleMiddleware } from '../middleware/auth';
 import { IUser } from '../models/User';
 import Note from '../models/Note';
+import { requireMongoIdParam, sanitizeClientBody } from '../utils/routeHelpers';
 
 const router = express.Router();
 
@@ -49,6 +50,7 @@ router.post('/', async (req: AuthRequest, res: Response, next: NextFunction) => 
 
 router.get('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const note = await Note.findOne({ _id: req.params.id, coupleId: user.coupleId });
     if (!note) return res.status(404).json({ error: 'Note not found' });
@@ -60,12 +62,13 @@ router.get('/:id', async (req: AuthRequest, res: Response, next: NextFunction) =
 
 router.put('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
-    const updates: any = { ...req.body };
+    const updates = sanitizeClientBody(req.body || {});
     const note = await Note.findOneAndUpdate(
       { _id: req.params.id, coupleId: user.coupleId },
       { $set: updates },
-      { new: true }
+      { new: true, runValidators: true }
     );
     if (!note) return res.status(404).json({ error: 'Note not found' });
     res.json({ note });
@@ -76,6 +79,7 @@ router.put('/:id', async (req: AuthRequest, res: Response, next: NextFunction) =
 
 router.patch('/:id/pin', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const { isPinned } = req.body || {};
     const note = await Note.findOne({ _id: req.params.id, coupleId: user.coupleId });
@@ -90,6 +94,7 @@ router.patch('/:id/pin', async (req: AuthRequest, res: Response, next: NextFunct
 
 router.delete('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const result = await Note.deleteOne({ _id: req.params.id, coupleId: user.coupleId });
     if (result.deletedCount === 0) return res.status(404).json({ error: 'Note not found' });

@@ -12,12 +12,14 @@ final todayCheckinProvider = AsyncNotifierProvider<TodayCheckinNotifier, Checkin
 class TodayCheckinNotifier extends AsyncNotifier<CheckinModel?> {
   @override
   Future<CheckinModel?> build() async {
-    // Load last 30 days and pick today; keeps backend simple
-    final to = DateTime.now().toIso8601String().substring(0, 10);
     final from = DateTime.now().subtract(const Duration(days: 30)).toIso8601String().substring(0, 10);
+    final to = DateTime.now().toIso8601String().substring(0, 10);
     final list = await ref.read(checkinServiceProvider).list(from: from, to: to);
     final today = DateTime.now().toIso8601String().substring(0, 10);
-    return list.where((c) => c.dayKey == today).cast<CheckinModel?>().firstWhere((c) => true, orElse: () => null);
+    for (final c in list) {
+      if (c.dayKey == today) return c;
+    }
+    return null;
   }
 
   Future<void> submit({required String mood, String? comment}) async {

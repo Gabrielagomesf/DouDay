@@ -105,25 +105,25 @@ FIREBASE_PROJECT_ID=your-project-id
 
 ```
 DouDay/
-├── mobile/                 # App Flutter
+├── mobile/                    # App Flutter
 │   ├── lib/
-│   │   ├── core/          # Utilitários, temas, constants
-│   │   ├── auth/          # Telas de autenticação
-│   │   ├── home/          # Dashboard
-│   │   ├── tasks/         # Gerenciamento de tarefas
-│   │   ├── finances/      # Finanças do casal
-│   │   ├── checkin/       # Check-in emocional
-│   │   └── agenda/        # Agenda compartilhada
+│   │   ├── main.dart          # Entrada: init + ProviderScope
+│   │   ├── app/               # Widget raiz (tema, router)
+│   │   ├── core/              # Tema, API, router, models globais, widgets
+│   │   └── features/          # Por domínio (auth, home, tasks, couple_hub, …)
+│   ├── assets/                # images, icons, animations, env/.env
 │   └── pubspec.yaml
-├── backend/                # API Node.js
+├── backend/
 │   ├── src/
-│   │   ├── controllers/   # Controllers
-│   │   ├── models/        # Models MongoDB
-│   │   ├── routes/        # Rotas da API
-│   │   ├── middleware/    # Middleware
-│   │   └── services/      # Lógica de negócio
+│   │   ├── index.ts           # Servidor: DB, listen, shutdown
+│   │   ├── app.ts             # Express + rotas + socket + erros
+│   │   ├── routes/
+│   │   ├── models/
+│   │   ├── services/
+│   │   ├── middleware/
+│   │   └── utils/
 │   └── package.json
-└── docs/                  # Documentação
+└── docs/                      # Ver docs/estrutura-do-projeto.md
 ```
 
 ## 🔐 Segurança

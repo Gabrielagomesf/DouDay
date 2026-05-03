@@ -1,187 +1,136 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../providers/tasks_provider.dart';
 import '../models/task_model.dart';
 
-class TasksScreen extends ConsumerWidget {
+/// Doc: abas Todas / Pendentes / Concluídas + lista + FAB.
+class TasksScreen extends ConsumerStatefulWidget {
   const TasksScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TasksScreen> createState() => _TasksScreenState();
+}
+
+class _TasksScreenState extends ConsumerState<TasksScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTab);
+  }
+
+  void _onTab() {
+    if (_tabController.indexIsChanging) return;
+    final idx = _tabController.index;
+    final filter = switch (idx) {
+      1 => 'pending',
+      2 => 'completed',
+      _ => null,
+    };
+    ref.read(tasksQueryProvider.notifier).setFilter(filter);
+    ref.read(tasksQueryProvider.notifier).setAssignee(null);
+    ref.read(tasksListProvider.notifier).refresh();
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTab);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final tasksAsync = ref.watch(tasksListProvider);
 
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Tarefas'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Todas'),
+            Tab(text: 'Pendentes'),
+            Tab(text: 'Concluídas'),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/tasks/new'),
         child: const Icon(Icons.add),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _FiltersRow(
-                onChange: () => ref.read(tasksListProvider.notifier).refresh(),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: tasksAsync.when(
-                data: (tasks) {
-                  if (tasks.isEmpty) {
-                    return const EmptyState(
-                      title: 'Nenhuma tarefa ainda',
-                      body: 'Crie sua primeira tarefa e compartilhe a rotina.',
-                    );
-                  }
-                  return RefreshIndicator(
-                    onRefresh: () => ref.read(tasksListProvider.notifier).refresh(),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        const maxContentWidth = 600.0;
-                        final horizontalInset = constraints.maxWidth > maxContentWidth
-                            ? (constraints.maxWidth - maxContentWidth) / 2
-                            : 0.0;
+        child: tasksAsync.when(
+          data: (tasks) {
+            if (tasks.isEmpty) {
+              final tab = _tabController.index;
+              final title = switch (tab) {
+                1 => 'Nenhuma tarefa pendente',
+                2 => 'Nenhuma tarefa concluída',
+                _ => 'Nenhuma tarefa criada ainda',
+              };
+              final body = switch (tab) {
+                1 => 'Quando houver tarefas em aberto, aparecem aqui.',
+                2 => 'Conclua tarefas para vê-las nesta aba.',
+                _ => 'Crie sua primeira tarefa e compartilhe a rotina com seu parceiro.',
+              };
+              return EmptyState(
+                title: title,
+                body: body,
+                actionLabel: 'Criar primeira tarefa',
+                onAction: () => context.push('/tasks/new'),
+              );
+            }
+            return RefreshIndicator(
+              onRefresh: () => ref.read(tasksListProvider.notifier).refresh(),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  const maxContentWidth = 600.0;
+                  final horizontalInset =
+                      constraints.maxWidth > maxContentWidth ? (constraints.maxWidth - maxContentWidth) / 2 : 0.0;
 
-                        return ListView.separated(
-                          padding: EdgeInsets.fromLTRB(16 + horizontalInset, 16, 16 + horizontalInset, 16),
-                          itemCount: tasks.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 12),
-                          itemBuilder: (context, i) => _TaskTile(
-                            task: tasks[i],
-                            onToggle: () => ref.read(tasksListProvider.notifier).toggleComplete(tasks[i]),
-                            onOpen: () => context.push('/tasks/${tasks[i].id}'),
-                          ),
-                        );
-                      },
+                  return ListView.separated(
+                    padding: EdgeInsets.fromLTRB(16 + horizontalInset, 16, 16 + horizontalInset, 24),
+                    itemCount: tasks.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) => _TaskTile(
+                      task: tasks[i],
+                      onToggle: () => ref.read(tasksListProvider.notifier).toggleComplete(tasks[i]),
+                      onOpen: () => context.push('/tasks/${tasks[i].id}'),
                     ),
                   );
                 },
-                error: (e, _) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Erro ao carregar tarefas',
-                          style: TextStyle(color: AppTheme.textSecondary),
-                        ),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: () => ref.read(tasksListProvider.notifier).refresh(),
-                          child: const Text('Tentar novamente'),
-                        ),
-                      ],
-                    ),
+              ),
+            );
+          },
+          error: (e, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Erro ao carregar tarefas',
+                    style: TextStyle(color: AppTheme.textSecondary),
                   ),
-                ),
-                loading: () => const Center(child: CircularProgressIndicator()),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () => ref.read(tasksListProvider.notifier).refresh(),
+                    child: const Text('Tentar novamente'),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
         ),
-      ),
-    );
-  }
-}
-
-class _FiltersRow extends ConsumerWidget {
-  final VoidCallback onChange;
-  const _FiltersRow({required this.onChange});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final query = ref.watch(tasksQueryProvider);
-    final filter = query.filter;
-    final assignee = query.assignee;
-
-    Widget chip({
-      required String label,
-      required bool selected,
-      required VoidCallback onTap,
-    }) {
-      return ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onTap(),
-      );
-    }
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          chip(
-            label: 'Todas',
-            selected: filter == null,
-            onTap: () {
-              ref.read(tasksQueryProvider.notifier).setFilter(null);
-              onChange();
-            },
-          ),
-          const SizedBox(width: 8),
-          chip(
-            label: 'Hoje',
-            selected: filter == 'today',
-            onTap: () {
-              ref.read(tasksQueryProvider.notifier).setFilter('today');
-              onChange();
-            },
-          ),
-          const SizedBox(width: 8),
-          chip(
-            label: 'Atrasadas',
-            selected: filter == 'overdue',
-            onTap: () {
-              ref.read(tasksQueryProvider.notifier).setFilter('overdue');
-              onChange();
-            },
-          ),
-          const SizedBox(width: 8),
-          chip(
-            label: 'Concluídas',
-            selected: filter == 'completed',
-            onTap: () {
-              ref.read(tasksQueryProvider.notifier).setFilter('completed');
-              onChange();
-            },
-          ),
-          const SizedBox(width: 16),
-          chip(
-            label: 'Minhas',
-            selected: assignee == 'me',
-            onTap: () {
-              ref.read(tasksQueryProvider.notifier).setAssignee('me');
-              onChange();
-            },
-          ),
-          const SizedBox(width: 8),
-          chip(
-            label: 'Parceiro',
-            selected: assignee == 'partner',
-            onTap: () {
-              ref.read(tasksQueryProvider.notifier).setAssignee('partner');
-              onChange();
-            },
-          ),
-          const SizedBox(width: 8),
-          chip(
-            label: 'Ambos',
-            selected: assignee == 'both' || assignee == null,
-            onTap: () {
-              ref.read(tasksQueryProvider.notifier).setAssignee('both');
-              onChange();
-            },
-          ),
-        ],
       ),
     );
   }

@@ -6,6 +6,7 @@ import FinanceBill from '../models/FinanceBill';
 import AgendaEvent from '../models/AgendaEvent';
 import Checkin from '../models/Checkin';
 import Mission from '../models/Mission';
+import Couple from '../models/Couple';
 
 const router = express.Router();
 
@@ -22,13 +23,19 @@ router.get('/', async (req: AuthRequest, res: Response, next: NextFunction) => {
     const from = new Date(now);
     from.setDate(from.getDate() - 7);
 
-    const [tasksDone, billsPaid, events, checkins, missionsDone] = await Promise.all([
+    const [tasksDone, billsPaid, events, checkins, missionsDone, couple] = await Promise.all([
       Task.countDocuments({ coupleId: user.coupleId, status: 'completed', updatedAt: { $gte: from } }),
       FinanceBill.countDocuments({ coupleId: user.coupleId, status: 'paid', updatedAt: { $gte: from } }),
       AgendaEvent.countDocuments({ coupleId: user.coupleId, startAt: { $gte: from } }),
       Checkin.countDocuments({ coupleId: user.coupleId, createdAt: { $gte: from } }),
       Mission.countDocuments({ coupleId: user.coupleId, status: 'completed', updatedAt: { $gte: from } }),
+      Couple.findById(user.coupleId).select('relationshipGoal').lean(),
     ]);
+
+    const goalsProgress =
+      couple && typeof couple === 'object' && 'relationshipGoal' in couple && couple.relationshipGoal
+        ? String(couple.relationshipGoal).substring(0, 120)
+        : '—';
 
     res.json({
       summary: {
@@ -37,6 +44,7 @@ router.get('/', async (req: AuthRequest, res: Response, next: NextFunction) => {
         events,
         checkins,
         missionsDone,
+        goalsProgress,
         message: 'Vocês tiveram uma semana bem organizada.',
       },
     });

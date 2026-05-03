@@ -44,6 +44,7 @@ class WeeklySummaryScreen extends ConsumerWidget {
                       _Row(label: 'Eventos realizados', value: '${s['events'] ?? 0}'),
                       _Row(label: 'Check-ins feitos', value: '${s['checkins'] ?? 0}'),
                       _Row(label: 'Missões concluídas', value: '${s['missionsDone'] ?? 0}'),
+                      _Row(label: 'Metas avançadas', value: '${s['goalsProgress'] ?? '—'}'),
                     ],
                   ),
                 ),
@@ -54,8 +55,13 @@ class WeeklySummaryScreen extends ConsumerWidget {
                     style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w700),
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text('Comparação: +12% vs semana anterior', style: TextStyle(color: AppTheme.textSecondary)),
+                const SizedBox(height: 12),
+                const AppCard(
+                  child: Text(
+                    'Equilíbrio de responsabilidades: acompanhe tarefas concluídas por cada um para manter a divisão justa ao longo da semana.',
+                    style: TextStyle(color: AppTheme.textSecondary, height: 1.45),
+                  ),
+                ),
               ],
             );
           },

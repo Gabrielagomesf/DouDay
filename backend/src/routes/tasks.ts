@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import Task from '../models/Task';
 import { IUser } from '../models/User';
 import { coupleMiddleware } from '../middleware/auth';
+import { requireMongoIdParam, sanitizeClientBody } from '../utils/routeHelpers';
 
 const router = express.Router();
 
@@ -45,6 +46,9 @@ router.get('/', async (req: AuthRequest, res: Response, next: NextFunction) => {
     }
     if (filter === 'completed') {
       query.status = 'completed';
+    }
+    if (filter === 'pending') {
+      query.status = 'pending';
     }
 
     const tasks = await Task.find(query).sort({ dueAt: 1, createdAt: -1 }).limit(500);
@@ -96,6 +100,7 @@ router.post('/', async (req: AuthRequest, res: Response, next: NextFunction) => 
 // Get task
 router.get('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const task = await Task.findOne({ _id: req.params.id, coupleId: user.coupleId });
     if (!task) return res.status(404).json({ error: 'Task not found' });
@@ -108,14 +113,16 @@ router.get('/:id', async (req: AuthRequest, res: Response, next: NextFunction) =
 // Update task
 router.put('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
-    const updates: any = { ...req.body };
-    if (updates.dueAt) updates.dueAt = new Date(updates.dueAt);
+    const raw = sanitizeClientBody(req.body || {}) as Record<string, unknown>;
+    const updates: Record<string, unknown> = { ...raw };
+    if (updates.dueAt) updates.dueAt = new Date(updates.dueAt as string);
 
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, coupleId: user.coupleId },
       { $set: updates },
-      { new: true }
+      { new: true, runValidators: true }
     );
     if (!task) return res.status(404).json({ error: 'Task not found' });
     res.json({ task });
@@ -127,6 +134,7 @@ router.put('/:id', async (req: AuthRequest, res: Response, next: NextFunction) =
 // Mark completed / uncompleted
 router.patch('/:id/status', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const { status } = req.body || {};
     if (status !== 'pending' && status !== 'completed') {
@@ -149,6 +157,7 @@ router.patch('/:id/status', async (req: AuthRequest, res: Response, next: NextFu
 // Delete task
 router.delete('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const result = await Task.deleteOne({ _id: req.params.id, coupleId: user.coupleId });
     if (result.deletedCount === 0) return res.status(404).json({ error: 'Task not found' });

@@ -8,7 +8,7 @@ class Environment {
 
   static Future<void> init() async {
     try {
-      final String envString = await rootBundle.loadString('assets/env/.env');
+      final String envString = await _loadEnvBundle();
       final Map<String, String> envMap = {};
       
       for (final line in envString.split('\n')) {
@@ -31,6 +31,15 @@ class Environment {
       _firebaseProjectId = '';
       _debugMode = true;
       _enableNotifications = true;
+    }
+  }
+
+  /// Prefere `assets/env/.env` (local, pode estar no .gitignore); senão usa `.env.example`.
+  static Future<String> _loadEnvBundle() async {
+    try {
+      return await rootBundle.loadString('assets/env/.env');
+    } catch (_) {
+      return rootBundle.loadString('assets/env/.env.example');
     }
   }
 

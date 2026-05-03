@@ -47,6 +47,28 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
     }
   }
 
+  void _soon(String title) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            const Text(
+              'Estamos preparando esta área: lista de dispositivos, encerramento remoto de sessões e auditoria de acesso.',
+              style: TextStyle(color: AppTheme.textSecondary, height: 1.45),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,10 +82,16 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
             children: [
               AppCard(
                 child: Column(
-                  children: const [
-                    _SecurityTile(title: 'Dispositivos conectados'),
-                    Divider(height: 20),
-                    _SecurityTile(title: 'Encerrar todas as sessões'),
+                  children: [
+                    _SecurityTile(
+                      title: 'Ver dispositivos conectados',
+                      onTap: () => _soon('Dispositivos conectados'),
+                    ),
+                    const Divider(height: 20),
+                    _SecurityTile(
+                      title: 'Encerrar todas as sessões',
+                      onTap: () => _soon('Encerrar sessões'),
+                    ),
                   ],
                 ),
               ),
@@ -71,7 +99,10 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
               AppCard(
                 child: Column(
                   children: [
-                    const _SecurityTile(title: 'Alterar senha'),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('Alterar senha', style: TextStyle(fontWeight: FontWeight.w700)),
+                    ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: _current,
@@ -111,7 +142,29 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-                        onPressed: () {},
+                        onPressed: () {
+                          showDialog<void>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Excluir conta'),
+                              content: const Text(
+                                'Esta ação é irreversível e removerá seus dados em definitivo quando o backend suportar exclusão.',
+                              ),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Em breve: exclusão integral da conta')),
+                                    );
+                                  },
+                                  child: const Text('Continuar'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                         child: const Text('Excluir conta'),
                       ),
                     ),
@@ -128,16 +181,23 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
 
 class _SecurityTile extends StatelessWidget {
   final String title;
-  const _SecurityTile({required this.title});
+  final VoidCallback onTap;
+
+  const _SecurityTile({required this.title, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w700))),
-        const Icon(Icons.chevron_right),
-      ],
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w700))),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
+      ),
     );
   }
 }
-

@@ -7,13 +7,22 @@ import '../../../core/widgets/empty_state.dart';
 import '../providers/notifications_provider.dart';
 import '../models/app_notification_model.dart';
 
-class NotificationsScreen extends ConsumerWidget {
+/// Doc: lista + filtros Todas / Não lidas.
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+  int _filterTab = 0; // 0 todas, 1 não lidas
+
+  @override
+  Widget build(BuildContext context) {
     final async = ref.watch(notificationsProvider);
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Notificações'),
         actions: [
@@ -24,12 +33,38 @@ class NotificationsScreen extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
-        child: async.when(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Row(
+                children: [
+                  ChoiceChip(
+                    label: const Text('Todas'),
+                    selected: _filterTab == 0,
+                    onSelected: (_) => setState(() => _filterTab = 0),
+                  ),
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: const Text('Não lidas'),
+                    selected: _filterTab == 1,
+                    onSelected: (_) => setState(() => _filterTab = 1),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: async.when(
           data: (items) {
-            if (items.isEmpty) {
-              return const EmptyState(
-                title: 'Nenhuma notificação',
-                body: 'Quando algo acontecer, você verá por aqui.',
+            final visible =
+                _filterTab == 1 ? items.where((n) => !n.isRead).toList() : items;
+            if (visible.isEmpty) {
+              return EmptyState(
+                title: _filterTab == 1 ? 'Nenhuma não lida' : 'Nenhuma notificação',
+                body: _filterTab == 1
+                    ? 'Você está em dia com as novidades.'
+                    : 'Quando algo acontecer, você verá por aqui.',
               );
             }
             return RefreshIndicator(
@@ -42,9 +77,9 @@ class NotificationsScreen extends ConsumerWidget {
 
                   return ListView.separated(
                     padding: EdgeInsets.fromLTRB(16 + horizontalInset, 16, 16 + horizontalInset, 16),
-                    itemCount: items.length,
+                    itemCount: visible.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, i) => _Tile(item: items[i]),
+                    itemBuilder: (context, i) => _Tile(item: visible[i]),
                   );
                 },
               ),
@@ -52,6 +87,9 @@ class NotificationsScreen extends ConsumerWidget {
           },
           error: (e, _) => Center(child: Text('Erro: $e')),
           loading: () => const Center(child: CircularProgressIndicator()),
+        ),
+            ),
+          ],
         ),
       ),
     );
@@ -69,7 +107,7 @@ class _Tile extends ConsumerWidget {
       child: Row(
         children: [
           Icon(
-            item.isRead ? Icons.notifications_none : Icons.notifications,
+            notificationIcon(item.type),
             color: item.isRead ? AppTheme.textTertiary : AppTheme.primaryColor,
           ),
           const SizedBox(width: 12),
@@ -79,14 +117,30 @@ class _Tile extends ConsumerWidget {
               children: [
                 Text(item.title, style: const TextStyle(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
-                Text(item.body, style: const TextStyle(color: AppTheme.textSecondary)),
+                Text(item.body, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
               ],
             ),
           ),
-          Text(item.isRead ? 'Lida' : 'Nova', style: const TextStyle(color: AppTheme.textSecondary)),
+          if (!item.isRead)
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(color: AppTheme.primaryColor, shape: BoxShape.circle),
+            ),
         ],
       ),
     );
   }
 }
 
+IconData notificationIcon(String? type) {
+  final t = (type ?? '').toLowerCase();
+  if (t == 'task' || t == 'tarefa') return Icons.task_alt_outlined;
+  if (t == 'agenda' || t == 'event') return Icons.calendar_today_outlined;
+  if (t == 'finance' || t == 'finanças' || t == 'financas') {
+    return Icons.account_balance_wallet_outlined;
+  }
+  if (t == 'checkin') return Icons.favorite_border;
+  if (t == 'system' || t == 'sistema') return Icons.settings_outlined;
+  return Icons.notifications_outlined;
+}

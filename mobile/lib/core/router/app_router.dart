@@ -22,9 +22,10 @@ import '../../features/finances/screens/finance_bill_form_screen.dart';
 import '../../features/finances/screens/finance_bill_details_screen.dart';
 import '../../features/checkin/screens/checkin_screen.dart';
 import '../../features/checkin/screens/checkin_history_screen.dart';
-import '../../features/us/screens/us_hub_screen.dart';
+import '../../features/couple_hub/screens/couple_hub_screen.dart';
 import '../../features/notes/screens/notes_screen.dart';
 import '../../features/missions/screens/missions_screen.dart';
+import '../../features/goals/screens/goals_screen.dart';
 import '../../features/weekly_summary/screens/weekly_summary_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/agenda/screens/agenda_screen.dart';
@@ -32,6 +33,13 @@ import '../../features/agenda/screens/agenda_event_form_screen.dart';
 import '../../features/agenda/screens/agenda_event_details_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
+import '../../core/constants/legal_content.dart';
+import '../../features/settings/screens/about_screen.dart';
+import '../../features/settings/screens/contact_screen.dart';
+import '../../features/settings/screens/faq_screen.dart';
+import '../../features/settings/screens/appearance_screen.dart';
+import '../../features/settings/screens/legal_document_screen.dart';
+import '../../features/settings/screens/privacy_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/settings/screens/notification_settings_screen.dart';
 import '../../features/security/screens/security_screen.dart';
@@ -206,7 +214,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/us',
-            builder: (context, state) => const UsHubScreen(),
+            builder: (context, state) => const CoupleHubScreen(),
           ),
           GoRoute(
             path: '/notes',
@@ -215,6 +223,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/missions',
             builder: (context, state) => const MissionsScreen(),
+          ),
+          GoRoute(
+            path: '/goals',
+            builder: (context, state) => const GoalsScreen(),
           ),
           GoRoute(
             path: '/weekly-summary',
@@ -239,6 +251,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/notifications',
         builder: (context, state) => const NotificationSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/appearance',
+        builder: (context, state) => const AppearanceScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy',
+        builder: (context, state) => const PrivacyScreen(),
+      ),
+      GoRoute(
+        path: '/settings/about',
+        builder: (context, state) => const AboutScreen(),
+      ),
+      GoRoute(
+        path: '/settings/contact',
+        builder: (context, state) => const ContactScreen(),
+      ),
+      GoRoute(
+        path: '/settings/faq',
+        builder: (context, state) => const FaqScreen(),
+      ),
+      GoRoute(
+        path: '/settings/terms',
+        builder: (context, state) => LegalDocumentScreen(
+          title: 'Termos de uso',
+          body: LegalContent.termsOfUse,
+          requireAcceptance: true,
+        ),
+      ),
+      GoRoute(
+        path: '/settings/privacy-policy',
+        builder: (context, state) => LegalDocumentScreen(
+          title: 'Política de privacidade',
+          body: LegalContent.privacyPolicy,
+        ),
       ),
       GoRoute(
         path: '/notifications',
@@ -320,9 +367,9 @@ class _MainNavigationState extends State<MainNavigation> {
       route: '/finances',
     ),
     NavigationItem(
-      icon: Icons.favorite_outline,
+      icon: Icons.favorite_border,
       selectedIcon: Icons.favorite,
-      label: 'Nós ❤️',
+      label: 'Nós',
       route: '/us',
     ),
   ];
@@ -334,7 +381,12 @@ class _MainNavigationState extends State<MainNavigation> {
       _ when path.startsWith('/tasks') => 1,
       _ when path.startsWith('/agenda') => 2,
       _ when path.startsWith('/finances') => 3,
-      _ when path.startsWith('/us') => 4,
+      _ when path.startsWith('/us') ||
+              path.startsWith('/goals') ||
+              path.startsWith('/missions') ||
+              path.startsWith('/notes') ||
+              path.startsWith('/weekly-summary') =>
+        4,
       _ => 0,
     };
 

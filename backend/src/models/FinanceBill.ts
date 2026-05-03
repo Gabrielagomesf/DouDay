@@ -7,6 +7,7 @@ export type FinanceCategory =
   | 'leisure'
   | 'transport'
   | 'subscriptions'
+  | 'subscription'
   | 'other';
 
 export type SplitType = 'half' | 'fixed' | 'percent';
@@ -40,7 +41,7 @@ const FinanceBillSchema = new Schema<IFinanceBill>(
     amount: { type: Number, required: true, min: 0 },
     category: {
       type: String,
-      enum: ['rent', 'internet', 'market', 'leisure', 'transport', 'subscriptions', 'other'],
+      enum: ['rent', 'internet', 'market', 'leisure', 'transport', 'subscriptions', 'subscription', 'other'],
       default: 'other',
       index: true,
     },

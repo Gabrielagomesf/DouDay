@@ -26,7 +26,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final authService = ref.read(authServiceProvider);
     await authService.loadStoredCredentials();
     final onboardingCompleted = await ref.read(onboardingServiceProvider).isCompleted();
-    
+
     if (mounted) {
       if (!onboardingCompleted) {
         context.go('/onboarding');
@@ -38,77 +38,86 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    scheme.primary,
-                    AppTheme.primaryDark,
-                  ],
-                ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.primaryGradientStart,
+                  AppTheme.primaryGradientEnd,
+                ],
               ),
             ),
           ),
-          Center(
+          SafeArea(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const Spacer(flex: 2),
                 Container(
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.94),
-                    borderRadius: BorderRadius.circular(30),
+                    color: Colors.white.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.14),
-                        blurRadius: 28,
-                        offset: const Offset(0, 14),
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 24,
+                        offset: const Offset(0, 12),
                       ),
                     ],
                   ),
-                  child: Icon(
-                    Icons.favorite,
-                    color: scheme.primary,
-                    size: 60,
+                  child: const Icon(
+                    Icons.favorite_rounded,
+                    color: AppTheme.primaryColor,
+                    size: 56,
                   ),
                 ),
-                const SizedBox(height: 28),
-                const Text(
+                const SizedBox(height: 24),
+                Text(
                   'DuoDay',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: 0.8,
-                  ),
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                      ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Organize sua vida a dois.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                    letterSpacing: 0.2,
+                Text(
+                  'Organize sua vida a dois',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        fontWeight: FontWeight.w400,
+                      ),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  height: 180,
+                  child: Image.asset(
+                    'assets/images/splash_couple.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Icon(
+                      Icons.groups_2_rounded,
+                      size: 120,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 56),
+                const Spacer(flex: 3),
                 const SizedBox(
-                  height: 22,
-                  width: 22,
+                  height: 24,
+                  width: 24,
                   child: CircularProgressIndicator(
                     color: Colors.white,
                     strokeWidth: 2.5,
                   ),
                 ),
+                const SizedBox(height: 48),
               ],
             ),
           ),

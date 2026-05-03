@@ -43,6 +43,16 @@ class FinancesSummaryNotifier extends AsyncNotifier<Map<String, dynamic>> {
   }
 }
 
+/// Lista completa (sem filtro) para cards Entradas/Saídas no topo.
+final financesAllBillsProvider = FutureProvider<List<FinanceBillModel>>((ref) async {
+  return ref.read(financesServiceProvider).list();
+});
+
+/// Contas pendentes para o dashboard (ignora filtros da lista).
+final dashboardPendingBillsProvider = FutureProvider<List<FinanceBillModel>>((ref) async {
+  return ref.read(financesServiceProvider).list(status: 'pending', category: null);
+});
+
 final billsProvider = AsyncNotifierProvider<BillsNotifier, List<FinanceBillModel>>(
   BillsNotifier.new,
 );
@@ -58,6 +68,7 @@ class BillsNotifier extends AsyncNotifier<List<FinanceBillModel>> {
   Future<void> refresh() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(build);
+    ref.invalidate(financesAllBillsProvider);
   }
 
   Future<void> togglePaid(FinanceBillModel bill) async {

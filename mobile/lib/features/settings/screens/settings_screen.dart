@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/widgets/app_card.dart';
@@ -31,7 +32,7 @@ class SettingsScreen extends ConsumerWidget {
             _Tile(
               icon: Icons.palette_outlined,
               title: 'Aparência',
-              onTap: () {},
+              onTap: () => context.push('/settings/appearance'),
             ),
             _Tile(
               icon: Icons.lock_outline,
@@ -41,12 +42,32 @@ class SettingsScreen extends ConsumerWidget {
             _Tile(
               icon: Icons.privacy_tip_outlined,
               title: 'Privacidade',
-              onTap: () {},
+              onTap: () => context.push('/settings/privacy'),
+            ),
+            _Tile(
+              icon: Icons.gavel_outlined,
+              title: 'Termos de uso',
+              onTap: () => context.push('/settings/terms'),
+            ),
+            _Tile(
+              icon: Icons.policy_outlined,
+              title: 'Política de privacidade',
+              onTap: () => context.push('/settings/privacy-policy'),
+            ),
+            _Tile(
+              icon: Icons.help_outline,
+              title: 'Perguntas frequentes (FAQ)',
+              onTap: () => context.push('/settings/faq'),
+            ),
+            _Tile(
+              icon: Icons.mail_outline,
+              title: 'Contato',
+              onTap: () => context.push('/settings/contact'),
             ),
             _Tile(
               icon: Icons.info_outline,
               title: 'Sobre o DuoDay',
-              onTap: () {},
+              onTap: () => context.push('/settings/about'),
             ),
             const SizedBox(height: 12),
             ElevatedButton(

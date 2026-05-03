@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import { coupleMiddleware } from '../middleware/auth';
 import { IUser } from '../models/User';
 import FinanceBill from '../models/FinanceBill';
+import { requireMongoIdParam, sanitizeClientBody } from '../utils/routeHelpers';
 
 const router = express.Router();
 
@@ -82,17 +83,20 @@ router.post('/', async (req: AuthRequest, res: Response, next: NextFunction) => 
     if (amount === undefined || Number.isNaN(Number(amount))) return res.status(400).json({ error: 'Amount is required' });
     if (!dueAt) return res.status(400).json({ error: 'dueAt is required' });
 
+    let normalizedCategory = category;
+    if (normalizedCategory === 'subscription') normalizedCategory = 'subscriptions';
+
     const bill = await FinanceBill.create({
       coupleId: user.coupleId,
       name,
       amount: Number(amount),
-      category,
+      category: normalizedCategory,
       dueAt: new Date(dueAt),
       responsible,
       splitType,
       splitMe,
       splitPartner,
-      status,
+      status: status === 'paid' || status === 'pending' ? status : undefined,
       receiptUrl,
       notes,
       createdBy: user._id,
@@ -107,6 +111,7 @@ router.post('/', async (req: AuthRequest, res: Response, next: NextFunction) => 
 // Get bill
 router.get('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const bill = await FinanceBill.findOne({ _id: req.params.id, coupleId: user.coupleId });
     if (!bill) return res.status(404).json({ error: 'Bill not found' });
@@ -119,14 +124,16 @@ router.get('/:id', async (req: AuthRequest, res: Response, next: NextFunction) =
 // Update bill
 router.put('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
-    const updates: any = { ...req.body };
-    if (updates.dueAt) updates.dueAt = new Date(updates.dueAt);
+    const updates: Record<string, unknown> = sanitizeClientBody(req.body || {});
+    if (updates.category === 'subscription') updates.category = 'subscriptions';
+    if (updates.dueAt) updates.dueAt = new Date(updates.dueAt as string);
 
     const bill = await FinanceBill.findOneAndUpdate(
       { _id: req.params.id, coupleId: user.coupleId },
       { $set: updates },
-      { new: true }
+      { new: true, runValidators: true }
     );
     if (!bill) return res.status(404).json({ error: 'Bill not found' });
     res.json({ bill });
@@ -138,6 +145,7 @@ router.put('/:id', async (req: AuthRequest, res: Response, next: NextFunction) =
 // Mark paid/unpaid
 router.patch('/:id/status', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const { status } = req.body || {};
     if (status !== 'pending' && status !== 'paid') return res.status(400).json({ error: 'Invalid status' });
@@ -159,6 +167,7 @@ router.patch('/:id/status', async (req: AuthRequest, res: Response, next: NextFu
 // Delete bill
 router.delete('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const result = await FinanceBill.deleteOne({ _id: req.params.id, coupleId: user.coupleId });
     if (result.deletedCount === 0) return res.status(404).json({ error: 'Bill not found' });

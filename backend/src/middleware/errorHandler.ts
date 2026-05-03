@@ -3,6 +3,14 @@ import { Request, Response, NextFunction } from 'express';
 export const errorHandler = (error: any, req: Request, res: Response, _next: NextFunction) => {
   console.error('Error:', error);
 
+  // Mongoose CastError (ex.: id inválido)
+  if (error.name === 'CastError') {
+    return res.status(400).json({
+      error: 'Invalid id or value',
+      path: error.path,
+    });
+  }
+
   // Mongoose validation error
   if (error.name === 'ValidationError') {
     const errors = Object.values(error.errors).map((err: any) => ({

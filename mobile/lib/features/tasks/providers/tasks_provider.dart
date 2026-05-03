@@ -32,6 +32,11 @@ class TasksQueryNotifier extends Notifier<TasksQueryState> {
   void setAssignee(String? assignee) => state = state.copyWith(assignee: assignee);
 }
 
+/// Lista completa para o dashboard (ignora filtros da tela de tarefas).
+final dashboardTasksProvider = FutureProvider<List<TaskModel>>((ref) async {
+  return ref.read(tasksServiceProvider).list(filter: null, assignee: null);
+});
+
 final tasksListProvider = AsyncNotifierProvider<TasksListNotifier, List<TaskModel>>(
   TasksListNotifier.new,
 );

@@ -20,7 +20,15 @@ class NotesListNotifier extends AsyncNotifier<List<NoteModel>> {
   @override
   Future<List<NoteModel>> build() async {
     final q = ref.watch(notesQueryProvider);
-    return ref.read(notesServiceProvider).list(q: q);
+    final raw = await ref.read(notesServiceProvider).list(q: q);
+    final list = [...raw]..sort((a, b) {
+        if (a.isPinned != b.isPinned) return a.isPinned ? -1 : 1;
+        final da = a.updatedAt ?? a.createdAt;
+        final db = b.updatedAt ?? b.createdAt;
+        if (da != null && db != null) return db.compareTo(da);
+        return 0;
+      });
+    return list;
   }
 
   Future<void> refresh() async {

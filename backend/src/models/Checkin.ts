@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export type Mood = 'very_good' | 'good' | 'neutral' | 'tired' | 'stressed';
+export type Mood = 'very_good' | 'good' | 'neutral' | 'tired' | 'stressed' | 'sad';
 
 export interface ICheckin extends Document {
   coupleId: mongoose.Types.ObjectId;
@@ -16,7 +16,12 @@ const CheckinSchema = new Schema<ICheckin>(
   {
     coupleId: { type: Schema.Types.ObjectId, ref: 'Couple', required: true, index: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-    mood: { type: String, enum: ['very_good', 'good', 'neutral', 'tired', 'stressed'], required: true, index: true },
+    mood: {
+      type: String,
+      enum: ['very_good', 'good', 'neutral', 'tired', 'stressed', 'sad'],
+      required: true,
+      index: true,
+    },
     comment: { type: String, default: '' },
     dayKey: { type: String, required: true, index: true },
   },

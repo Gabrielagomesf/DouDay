@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import { coupleMiddleware } from '../middleware/auth';
 import { IUser } from '../models/User';
 import AgendaEvent from '../models/AgendaEvent';
+import { requireMongoIdParam, sanitizeClientBody } from '../utils/routeHelpers';
 
 const router = express.Router();
 
@@ -74,6 +75,7 @@ router.post('/', async (req: AuthRequest, res: Response, next: NextFunction) => 
 // Get event
 router.get('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const event = await AgendaEvent.findOne({ _id: req.params.id, coupleId: user.coupleId });
     if (!event) return res.status(404).json({ error: 'Event not found' });
@@ -86,15 +88,16 @@ router.get('/:id', async (req: AuthRequest, res: Response, next: NextFunction) =
 // Update event
 router.put('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
-    const updates: any = { ...req.body };
-    if (updates.startAt) updates.startAt = new Date(updates.startAt);
-    if (updates.endAt) updates.endAt = new Date(updates.endAt);
+    const updates: Record<string, unknown> = sanitizeClientBody(req.body || {});
+    if (updates.startAt) updates.startAt = new Date(updates.startAt as string);
+    if (updates.endAt) updates.endAt = new Date(updates.endAt as string);
 
     const event = await AgendaEvent.findOneAndUpdate(
       { _id: req.params.id, coupleId: user.coupleId },
       { $set: updates },
-      { new: true }
+      { new: true, runValidators: true }
     );
     if (!event) return res.status(404).json({ error: 'Event not found' });
     res.json({ event });
@@ -106,6 +109,7 @@ router.put('/:id', async (req: AuthRequest, res: Response, next: NextFunction) =
 // Delete event
 router.delete('/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const result = await AgendaEvent.deleteOne({ _id: req.params.id, coupleId: user.coupleId });
     if (result.deletedCount === 0) return res.status(404).json({ error: 'Event not found' });

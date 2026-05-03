@@ -17,6 +17,14 @@ class SelectedDayNotifier extends Notifier<DateTime> {
   void set(DateTime day) => state = DateTime(day.year, day.month, day.day);
 }
 
+/// Eventos de hoje para o dashboard (não depende do dia selecionado na agenda).
+final todayAgendaEventsProvider = FutureProvider<List<AgendaEventModel>>((ref) async {
+  final now = DateTime.now();
+  final from = DateTime(now.year, now.month, now.day);
+  final to = from.add(const Duration(days: 1));
+  return ref.read(agendaServiceProvider).list(from: from, to: to);
+});
+
 final agendaEventsProvider = AsyncNotifierProvider<AgendaEventsNotifier, List<AgendaEventModel>>(
   AgendaEventsNotifier.new,
 );

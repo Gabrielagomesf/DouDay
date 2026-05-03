@@ -11,6 +11,8 @@ interface AuthRequest extends Request {
 
 router.use(coupleMiddleware);
 
+const ALLOWED_MOODS = ['very_good', 'good', 'neutral', 'tired', 'stressed', 'sad'] as const;
+
 function dayKeyUTC(d: Date) {
   return d.toISOString().substring(0, 10);
 }
@@ -20,14 +22,17 @@ router.post('/', async (req: AuthRequest, res: Response, next: NextFunction) => 
   try {
     const user = req.user!;
     const { mood, comment } = req.body || {};
-    if (!mood) return res.status(400).json({ error: 'Mood is required' });
+    if (!mood || typeof mood !== 'string') return res.status(400).json({ error: 'Mood is required' });
+    if (!(ALLOWED_MOODS as readonly string[]).includes(mood)) {
+      return res.status(400).json({ error: 'Invalid mood', allowed: ALLOWED_MOODS });
+    }
 
     const todayKey = dayKeyUTC(new Date());
 
     const checkin = await Checkin.findOneAndUpdate(
       { coupleId: user.coupleId, userId: user._id, dayKey: todayKey },
       { $set: { mood, comment: comment ?? '' } },
-      { upsert: true, new: true }
+      { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
     );
 
     res.status(201).json({ checkin });

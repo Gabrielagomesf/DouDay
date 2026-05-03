@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import { coupleMiddleware } from '../middleware/auth';
 import { IUser } from '../models/User';
 import Mission from '../models/Mission';
+import { requireMongoIdParam } from '../utils/routeHelpers';
 
 const router = express.Router();
 
@@ -70,6 +71,7 @@ router.get('/', async (req: AuthRequest, res: Response, next: NextFunction) => {
 
 router.patch('/:id/status', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    if (!requireMongoIdParam(req.params.id, res)) return;
     const user = req.user!;
     const { status } = req.body || {};
     if (status !== 'pending' && status !== 'completed') return res.status(400).json({ error: 'Invalid status' });
