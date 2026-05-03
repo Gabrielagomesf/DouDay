@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_error_generic_screen.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../providers/notes_provider.dart';
 import '../models/note_model.dart';
@@ -67,7 +68,12 @@ class NotesScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                error: (e, _) => Center(child: Text('Erro: $e')),
+                error: (e, _) => AppErrorGenericScreen(
+                  title: 'Ops! Não conseguimos carregar suas notas',
+                  message: 'Tente novamente. Se persistir, verifique sua conexão.',
+                  onRetry: () => ref.read(notesListProvider.notifier).refresh(),
+                  backRoute: '/home',
+                ),
                 loading: () => const Center(child: CircularProgressIndicator()),
               ),
             ),

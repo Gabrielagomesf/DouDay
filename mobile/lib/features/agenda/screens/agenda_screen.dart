@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_error_generic_screen.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../models/agenda_event_model.dart';
 import '../providers/agenda_provider.dart';
@@ -83,11 +84,11 @@ class AgendaScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                error: (e, _) => Center(
-                  child: ElevatedButton(
-                    onPressed: () => ref.read(agendaEventsProvider.notifier).refresh(),
-                    child: const Text('Tentar novamente'),
-                  ),
+                error: (e, _) => AppErrorGenericScreen(
+                  title: 'Ops! Não conseguimos carregar sua agenda',
+                  message: 'Tente novamente. Se persistir, verifique sua conexão.',
+                  onRetry: () => ref.read(agendaEventsProvider.notifier).refresh(),
+                  backRoute: '/home',
                 ),
                 loading: () => const Center(child: CircularProgressIndicator()),
               ),

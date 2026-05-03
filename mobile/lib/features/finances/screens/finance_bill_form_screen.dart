@@ -22,6 +22,7 @@ class _FinanceBillFormScreenState extends ConsumerState<FinanceBillFormScreen> {
   DateTime _dueAt = DateTime.now();
   String _responsible = 'both';
   String _splitType = 'half';
+  String _status = 'pending';
   bool _saving = false;
 
   @override
@@ -34,6 +35,7 @@ class _FinanceBillFormScreenState extends ConsumerState<FinanceBillFormScreen> {
     _dueAt = widget.initial?.dueAt ?? DateTime.now();
     _responsible = widget.initial?.responsible ?? 'both';
     _splitType = widget.initial?.splitType ?? 'half';
+    _status = widget.initial?.status ?? 'pending';
   }
 
   @override
@@ -65,6 +67,7 @@ class _FinanceBillFormScreenState extends ConsumerState<FinanceBillFormScreen> {
         'dueAt': DateTime(_dueAt.year, _dueAt.month, _dueAt.day, 9).toIso8601String(),
         'responsible': _responsible,
         'splitType': _splitType,
+        'status': _status,
         'notes': _notes.text.trim(),
       };
       final service = ref.read(financesServiceProvider);
@@ -161,6 +164,16 @@ class _FinanceBillFormScreenState extends ConsumerState<FinanceBillFormScreen> {
                     DropdownMenuItem(value: 'percent', child: Text('Por porcentagem')),
                   ],
                   onChanged: (v) => setState(() => _splitType = v ?? 'half'),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: _status,
+                  decoration: const InputDecoration(labelText: 'Status'),
+                  items: const [
+                    DropdownMenuItem(value: 'pending', child: Text('Pendente')),
+                    DropdownMenuItem(value: 'paid', child: Text('Pago')),
+                  ],
+                  onChanged: (v) => setState(() => _status = v ?? 'pending'),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(

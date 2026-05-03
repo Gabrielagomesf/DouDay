@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_error_generic_screen.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../providers/tasks_provider.dart';
 import '../models/task_model.dart';
@@ -110,24 +111,11 @@ class _TasksScreenState extends ConsumerState<TasksScreen> with SingleTickerProv
               ),
             );
           },
-          error: (e, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Erro ao carregar tarefas',
-                    style: TextStyle(color: AppTheme.textSecondary),
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => ref.read(tasksListProvider.notifier).refresh(),
-                    child: const Text('Tentar novamente'),
-                  ),
-                ],
-              ),
-            ),
+          error: (e, _) => AppErrorGenericScreen(
+            title: 'Ops! Não conseguimos carregar suas tarefas',
+            message: 'Tente novamente. Se persistir, verifique sua conexão.',
+            onRetry: () => ref.read(tasksListProvider.notifier).refresh(),
+            backRoute: '/home',
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
         ),

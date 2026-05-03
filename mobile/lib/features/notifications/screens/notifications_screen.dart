@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_error_generic_screen.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../providers/notifications_provider.dart';
 import '../models/app_notification_model.dart';
@@ -85,7 +86,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               ),
             );
           },
-          error: (e, _) => Center(child: Text('Erro: $e')),
+          error: (e, _) => AppErrorGenericScreen(
+            title: 'Ops! Não conseguimos carregar suas notificações',
+            message: 'Tente novamente. Se persistir, verifique sua conexão.',
+            onRetry: () => ref.read(notificationsProvider.notifier).refresh(),
+            backRoute: '/home',
+          ),
           loading: () => const Center(child: CircularProgressIndicator()),
         ),
             ),

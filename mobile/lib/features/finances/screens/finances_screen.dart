@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_error_generic_screen.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../models/finance_bill_model.dart';
 import '../providers/finances_provider.dart';
@@ -271,11 +272,14 @@ class FinancesScreen extends ConsumerWidget {
                 );
               },
               error: (e, _) => Expanded(
-                child: Center(
-                  child: ElevatedButton(
-                    onPressed: () => ref.read(billsProvider.notifier).refresh(),
-                    child: const Text('Tentar novamente'),
-                  ),
+                child: AppErrorGenericScreen(
+                  title: 'Ops! Não conseguimos carregar suas finanças',
+                  message: 'Tente novamente. Se persistir, verifique sua conexão.',
+                  onRetry: () async {
+                    await ref.read(billsProvider.notifier).refresh();
+                    await ref.read(financesSummaryProvider.notifier).refresh();
+                  },
+                  backRoute: '/home',
                 ),
               ),
               loading: () => const Expanded(child: Center(child: CircularProgressIndicator())),
